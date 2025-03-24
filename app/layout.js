@@ -18,8 +18,8 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }) {
-  const connection = await dbConnect();
-  //   console.log("mongodb", connection);
+  const mongodb_connection = await dbConnect();
+  //   console.log("mongodb", mongodb_connection);
   return (
     <html lang="en">
       <body

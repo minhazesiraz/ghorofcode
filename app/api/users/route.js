@@ -2,10 +2,10 @@ import dbConnect from "@/config/db";
 import User from "@/models/User";
 
 export async function GET(req) {
-  await dbConnect(); // Ensure the database is connected
+  await dbConnect();
 
   try {
-    const users = await User.find().select("-password"); // Exclude passwords
+    const users = await User.find().select("-password");
     return Response.json(users, { status: 200 });
   } catch (error) {
     return Response.json(
