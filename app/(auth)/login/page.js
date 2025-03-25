@@ -1,8 +1,9 @@
 "use client";
 
+import { signIn } from "next-auth/react"; // Import signIn from next-auth/client
 import { useRouter } from "next/navigation"; // Import Next.js router
 import { useState } from "react";
-import { handleSignIn } from "./actions"; // Ensure the correct path
+// import { handleSignIn } from "./actions"; // Ensure the correct path
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -13,23 +14,51 @@ export default function SignInPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setError(null);
-    setLoading(true);
 
     try {
-      const response = await handleSignIn({ email, password });
+      // const response = await handleSignIn({ email, password });
+      // console.log(response);
+      const formData = new FormData(event.currentTarget);
+      const userData = Object.fromEntries(formData.entries());
+      const { email, password } = userData;
+      // const result = await handleSignIn(formData);
 
-      if (!response.success) {
-        throw new Error(response.message);
+      const result = await signIn("credentials", {
+        //   email: formData.get("email"),
+        //   password: formData.get("password"),
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        console.error("Login page", result.error);
+        setError(result.error);
+        return;
+      } else {
+        router.push("/blogs");
       }
-
-      console.log("Login successful!", response);
-      router.push("/blogs"); // Redirect to /blogs
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error(error);
     }
+
+    //  setError(null);
+    //  setLoading(true);
+
+    //  try {
+    //    const response = await handleSignIn({ email, password });
+
+    //    if (!response.success) {
+    //      throw new Error(response.message);
+    //    }
+
+    //    console.log("Login successful!", response);
+    //    router.push("/blogs"); // Redirect to /blogs
+    //  } catch (err) {
+    //    setError(err.message);
+    //  } finally {
+    //    setLoading(false);
+    //  }
   };
 
   return (
@@ -41,6 +70,7 @@ export default function SignInPage() {
           <input
             type="email"
             value={email}
+            name="email"
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
             required
@@ -49,6 +79,7 @@ export default function SignInPage() {
           <input
             type="password"
             value={password}
+            name="password"
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
             required
@@ -65,6 +96,9 @@ export default function SignInPage() {
 
           {error && <p className="text-red-500 text-center">{error}</p>}
         </form>
+        <button className="cursor-pointer" onClick={() => signIn("google")}>
+          Login with Google
+        </button>
       </div>
     </div>
   );

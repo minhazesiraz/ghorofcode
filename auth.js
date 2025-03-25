@@ -1,59 +1,140 @@
+import dbConnect from "@/config/db";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
 import NextAuth from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
+import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
 
-export const authOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
+export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
-    CredentialsProvider({
-      name: "credentials",
+    Credentials({
+      // You can specify which fields should be submitted, by adding keys to the `credentials` object.
+      // e.g. domain, username, password, 2FA token, etc.
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        email: {},
+        password: {},
       },
-      async authorize(credentials) {
-        console.log("Authorize function called with:", credentials);
-        const { email, password } = credentials;
+      authorize: async (credentials) => {
+        try {
+          if (!credentials.email || !credentials.password) {
+            throw new Error("Please enter your email and password.");
+          }
 
-        const user = await User.findOne({ email }).select("+password");
-        if (!user) {
-          console.error("User not found");
-          throw new Error("Invalid credentials.");
+          console.log("Checking user in the database...");
+          const user = await Ussr.findOne({ email: credentials.email })
+            .select("+password")
+            .lean();
+
+          if (!user) {
+            throw new Error("No user found with this email.");
+          }
+
+          //  console.log("User from DB:", user);
+          if (!user.password) {
+            throw new Error("Password not found for this user");
+          }
+
+          console.log("Comparing password...");
+          const isValid = await bcrypt.compare(
+            credentials.password,
+            user.password
+          );
+          if (!isValid) {
+            throw new Error("Invalid credentials");
+          }
+
+          user._id = user._id.toString();
+          delete user.password;
+          console.log("Login successful!", user);
+          return {
+            success: true,
+            message: "Login successful",
+            user: {
+              id: user._id.toString(),
+              name: `${user.firstName} ${user.lastName}`,
+              email: user.email,
+              avatar: user.avatar,
+            },
+          };
+        } catch (error) {
+          throw new Error(
+            error.message || "Authentication failed. Please try again."
+          );
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-          console.error("Incorrect password");
-          throw new Error("Invalid credentials.");
-        }
+        //   let user = null;
 
-        if (!user.emailVerified) {
-          console.error("Email not verified");
-          throw new Error("Email not verified.");
-        }
+        //   // logic to salt and hash password
+        //   const pwHash = saltAndHashPassword(credentials.password);
 
-        console.log("User authenticated successfully:", user);
-        return user;
+        //   // logic to verify if the user exists
+        //   user = await getUserFromDb(credentials.email, pwHash);
+
+        //   if (!user) {
+        //     // No user found, so this is their first attempt to login
+        //     // Optionally, this is also the place you could do a user registration
+        //     throw new Error("Invalid credentials.");
+        //   }
+
+        //   // return user object with their profile data
+        //   return user;
       },
     }),
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      authorization: {
+        params: {
+          access_type: "offline",
+          prompt: "consent",
+          response_type: "code",
+        },
+      },
+    }),
+    //  Facebook({
+    //    clientId: process.env.FACEBOOK_CLIENT_ID,
+    //    clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+    //  }),
   ],
-  session: { strategy: "jwt" },
   callbacks: {
-    async jwt({ token, user }) {
-      console.log("JWT callback:", { token, user });
-      if (user) {
-        token.id = user.id;
-        token.email = user.email;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      console.log("Session callback:", { session, token });
-      session.user.id = token.id;
-      return session;
-    },
-  },
-};
+    async signIn({ user, account, profile }) {
+      try {
+        await dbConnect();
 
-export const { auth, handlers } = NextAuth(authOptions);
+        const existingUser = await User.findOne({ email: user.email });
+
+        if (!existingUser) {
+          const newUser = new User({
+            firstName: user.given_name || "",
+            lastName: user.family_name || "",
+            email: user.email,
+            avatar: user.image || "https://example.com/default-avatar.jpg",
+          });
+
+          await newUser.save();
+        }
+
+        return true;
+      } catch (error) {
+        console.error("Error in signIn callback", error);
+        return false;
+      }
+    },
+
+    //   async jwt({ token, user }) {
+    //     if (user) {
+    //       token.id = user.id;
+    //       token.role = user.role;
+    //     }
+    //     return token;
+    //   },
+    //   async session({ session, token }) {
+    //     session.user.id = token.id;
+    //     session.user.role = token.role;
+    //     return session;
+    //   },
+  },
+  //   pages: { signIn: "/auth/login" },
+  session: { strategy: "jwt" },
+  secret: process.env.NEXTAUTH_SECRET,
+});

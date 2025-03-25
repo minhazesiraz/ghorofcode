@@ -15,8 +15,8 @@ export async function POST(req) {
     return NextResponse.json({ error: "User already exists" }, { status: 400 });
 
   // logic to salt and hash password
-  //   const salt = await bcrypt.genSalt(10);
-  const pwHash = await bcrypt.hash(password, 10);
+  const salt = await bcrypt.genSalt(10);
+  const pwHash = await bcrypt.hash(password, salt);
 
   const userData = { firstName, lastName, email, password: pwHash };
   console.log(userData);

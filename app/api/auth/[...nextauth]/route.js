@@ -1,27 +1,30 @@
-import NextAuth from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
+import { handlers } from "@/auth";
+export const { GET, POST } = handlers;
 
-export const authOptions = {
-  providers: [
-    CredentialsProvider({
-      name: "Credentials",
-      authorize: async (credentials) => {
-        const user = await getUser(credentials.email); // Fetch from DB
-        if (!user) throw new Error("User not found");
+// import NextAuth from "next-auth";
+// import CredentialsProvider from "next-auth/providers/credentials";
 
-        const isValid = await comparePassword(
-          credentials.password,
-          user.password
-        );
-        if (!isValid) throw new Error("Invalid credentials");
+// export const authOptions = {
+//   providers: [
+//     CredentialsProvider({
+//       name: "Credentials",
+//       authorize: async (credentials) => {
+//         const user = await getUser(credentials.email); // Fetch from DB
+//         if (!user) throw new Error("User not found");
 
-        return user;
-      },
-    }),
-  ],
-  session: { strategy: "jwt" },
-  secret: process.env.NEXTAUTH_SECRET,
-};
+//         const isValid = await comparePassword(
+//           credentials.password,
+//           user.password
+//         );
+//         if (!isValid) throw new Error("Invalid credentials");
 
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+//         return user;
+//       },
+//     }),
+//   ],
+//   session: { strategy: "jwt" },
+//   secret: process.env.NEXTAUTH_SECRET,
+// };
+
+// const handler = NextAuth(authOptions);
+// export { handler as GET, handler as POST };
