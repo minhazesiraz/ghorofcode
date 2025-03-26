@@ -19,15 +19,15 @@ export default function SignInPage() {
       // const response = await handleSignIn({ email, password });
       // console.log(response);
       const formData = new FormData(event.currentTarget);
-      const userData = Object.fromEntries(formData.entries());
-      const { email, password } = userData;
+      // const userData = Object.fromEntries(formData.entries());
+      // const { email, password } = userData;
       // const result = await handleSignIn(formData);
 
       const result = await signIn("credentials", {
-        //   email: formData.get("email"),
-        //   password: formData.get("password"),
-        email,
-        password,
+        email: formData.get("email"),
+        password: formData.get("password"),
+        //   email,
+        //   password,
         redirect: false,
       });
 
@@ -96,7 +96,10 @@ export default function SignInPage() {
 
           {error && <p className="text-red-500 text-center">{error}</p>}
         </form>
-        <button className="cursor-pointer" onClick={() => signIn("google")}>
+        <button
+          className="cursor-pointer"
+          onClick={() => signIn("google", { callbackUrl: "/blogs" })}
+        >
           Login with Google
         </button>
       </div>
