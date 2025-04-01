@@ -39,7 +39,10 @@ export default function SignInPage() {
         router.push("/blogs");
       }
     } catch (error) {
-      console.error(error);
+      // console.error(error);
+      console.error("Sign-in error:", error);
+      setError(error.message || "An unexpected error occurred.");
+      setLoading(false);
     }
 
     //  setError(null);

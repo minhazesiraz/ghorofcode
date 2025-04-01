@@ -1,55 +1,59 @@
 // import dbConnect from "@/config/db";
+// import dbConnect from "@/config/db";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import { auth_config } from "./auth.config";
-// import { dbConnect } from "./config/dbConnect";
 
-async function refresh_access_token_rebuild(token) {
-  try {
-    const url =
-      "https://oauth2.googleapis.com/token?" +
-      new URLSearchParams({
-        client_id: process.env.GOOGLE_CLIENT_ID,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET,
-        grant_type: "refresh_token",
-        refresh_token: token.refresh_token_rebuild,
-      });
+// async function refresh_access_token_rebuild(token) {
+//   try {
+//     const url =
+//       "https://oauth2.googleapis.com/token?" +
+//       new URLSearchParams({
+//         client_id: process.env.GOOGLE_CLIENT_ID,
+//         client_secret: process.env.GOOGLE_CLIENT_SECRET,
+//         //   grant_type: token.refresh_token,
+//         refresh_token: token.refresh_token_rebuild,
+//       });
 
-    const response = await fetch(url, {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      method: "POST",
-    });
+//     const response = await fetch(url, {
+//       headers: {
+//         "Content-Type": "application/x-www-form-urlencoded",
+//       },
+//       method: "POST",
+//     });
 
-    const refreshed_tokens_rebuild = await response.json();
+//     const refreshed_tokens_rebuild = await response.json();
 
-    if (!response.ok) {
-      throw refreshed_tokens_rebuild;
-    }
+//     if (!response.ok) {
+//       throw refreshed_tokens_rebuild;
+//     }
 
-    return {
-      ...token,
-      access_token_rebuild: refreshed_tokens_rebuild?.access_token,
-      access_token_expires_rebuild:
-        Date.now() + refreshed_tokens_rebuild?.expires_in * 1000,
-      refresh_token_rebuild: refreshed_tokens_rebuild?.refresh_token,
-    };
-  } catch (error) {
-    console.log(error);
+//     return {
+//       ...token,
+//       access_token_rebuild: refreshed_tokens_rebuild?.access_token,
+//       access_token_expires_rebuild:
+//         Date.now() + refreshed_tokens_rebuild?.expires_in * 1000,
+//       refresh_token_rebuild: refreshed_tokens_rebuild?.refresh_token,
+//     };
+//   } catch (error) {
+//     console.log(error);
 
-    return {
-      ...token,
-      error: "refresh_access_token_rebuild_error",
-    };
-  }
-}
+//     return {
+//       ...token,
+//       error: "refresh_access_token_rebuild_error",
+//     };
+//   }
+// }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...auth_config,
+  //   debug: true;
+  //   session: {
+  //     strategy: "jwt",
+  //   },
   providers: [
     Credentials({
       // You can specify which fields should be submitted, by adding keys to the `credentials` object.
@@ -60,13 +64,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       authorize: async (credentials) => {
         try {
+          //  await dbConnect();
+
           if (!credentials.email || !credentials.password) {
             throw new Error("Please enter your email and password.");
           }
 
           console.log("Checking user in the database...");
           const user = await User.findOne({ email: credentials.email })
-            .select("+password role email")
+            .select("+password role email firstName lastName")
             .lean();
 
           if (!user) {
@@ -89,7 +95,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           //  user._id = user._id.toString();
           //  delete user.password;
-          console.log("Login successful!", user);
+          console.log("Login successful! A", user);
+          console.log("Login successful! B", user._id.toString());
+          console.log(
+            "Login successful! C",
+            `${user.firstName} ${user.lastName}`
+          );
+          //  console.log("Login successful!", user);
           return {
             // success: true,
             // message: "Login successful",
@@ -141,13 +153,36 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         },
       },
       async profile(profile) {
+        //   await dbConnect();
+        const user = await User.findOne({ email: profile.email });
+
+        if (!user) {
+          await User.create({
+            firstName: profile.given_name,
+            lastName: profile.family_name,
+            email: profile.email,
+            avatar: profile.picture,
+            role: "client", // Default role for new users
+          });
+        }
+
         return {
           id: profile.id,
           name: `${profile.given_name} ${profile.family_name}`,
           email: profile.email,
           image: profile.picture,
+          role: user?.role || "client",
         };
       },
+
+      // async profile(profile) {
+      //   return {
+      //     id: profile.id,
+      //     name: `${profile.given_name} ${profile.family_name}`,
+      //     email: profile.email,
+      //     image: profile.picture,
+      //   };
+      // },
     }),
     //  Facebook({
     //    clientId: process.env.FACEBOOK_CLIENT_ID,
@@ -155,44 +190,44 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     //  }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
-      try {
-        //   await dbConnect();
+    //  async signIn({ user, account, profile }) {
+    //    try {
+    //      //   await dbConnect();
 
-        const email = profile?.email || user.email;
+    //      const email = profile?.email || user.email;
 
-        if (!email) {
-          throw new Error("Email is required for new users.");
-        }
+    //      if (!email) {
+    //        throw new Error("Email is required for new users.");
+    //      }
 
-        // Check if the user already exists
-        let existing = await User.findOne({ email: user.email });
+    //      // Check if the user already exists
+    //      let existing = await User.findOne({ email: user.email });
 
-        if (!existing) {
-          //  if (!user.email) {
-          //    throw new Error("Email is required for new users.");
-          //  }
+    //      if (!existing) {
+    //        //  if (!user.email) {
+    //        //    throw new Error("Email is required for new users.");
+    //        //  }
 
-          // If the user does not exist, create a new entry
-          await User.create({
-            firstName: profile?.given_name || "blanks",
-            lastName: profile?.family_name || "blanks",
-            email,
-            avatar: user.image || "https://example.com/default-avatar.jpg",
-            role: "client",
-          });
-        } else {
-          user.role = existing.role;
-        }
+    //        // If the user does not exist, create a new entry
+    //        await User.create({
+    //          firstName: profile?.given_name || "blanks",
+    //          lastName: profile?.family_name || "blanks",
+    //          email,
+    //          avatar: user.image || "https://example.com/default-avatar.jpg",
+    //          role: "client",
+    //        });
+    //      } else {
+    //        user.role = existing.role;
+    //      }
 
-        //   user.role = existing.role;
+    //      //   user.role = existing.role;
 
-        return true; // Allow sign-in
-      } catch (error) {
-        console.error("Error in signIn callback", error);
-        return false;
-      }
-    },
+    //      return true; // Allow sign-in
+    //    } catch (error) {
+    //      console.error("Error in signIn callback", error);
+    //      return false;
+    //    }
+    //  },
 
     //  async signIn({ user, account, profile }) {
     //    try {
@@ -232,30 +267,46 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     //  },
     async jwt({ token, user, account }) {
       if (user) {
-        return {
-          access_token_rebuild: account?.access_token,
-          access_token_expires_rebuild: Date.now() + account?.expires_in * 1000,
-          refresh_token_rebuild: account?.refresh_token,
-          user,
-        };
+        //   return {
+        //     access_token_rebuild: account?.access_token,
+        //     access_token_expires_rebuild: Date.now() + account?.expires_in * 1000,
+        //     refresh_token_rebuild: account?.refresh_token,
+        //     user,
+        //   };
+        //   token.role = user.role;
+
+        token.id = user.id; // Ensure ID is stored in the token
+        token.role = user.role;
+        token.email = user.email;
+        token.name = user.name;
+
+        console.log("Updated Token in auth.js:", token);
       }
+      return token;
 
-      console.log(
-        `token will expire at: ${new Date(token.access_token_expires_rebuild)}`
-      );
+      // console.log(
+      //   `token will expire at: ${new Date(token.access_token_expires_rebuild)}`
+      // );
 
-      if (Date.now() < token?.access_token_expires_rebuild) {
-        console.log(`at: ${new Date(Date.now())}, using old access token`);
-        return token;
-      }
+      // if (Date.now() < token?.access_token_expires_rebuild) {
+      //   console.log(`at: ${new Date(Date.now())}, using old access token`);
+      //   return token;
+      // }
 
-      console.log(`token expired at: ${new Date(Date.now())}`);
-      return refresh_access_token_rebuild(token);
+      // console.log(`token expired at: ${new Date(Date.now())}`);
+      // return refresh_access_token_rebuild(token);
     },
     async session({ session, token }) {
-      session.user = token?.user;
-      session.access_token_rebuild = token?.access_token;
-      session.error = token?.error;
+      // session.user = token?.user;
+      // session.access_token_rebuild = token?.access_token;
+      // session.error = token?.error;
+
+      // session.user.role = token.role;
+
+      session.user.id = token.id; // Assign ID from token to session
+      session.user.role = token.role;
+      session.user.email = token.email;
+      session.user.name = token.name;
 
       console.log(`returning session: ${JSON.stringify(session)}`);
       return session;

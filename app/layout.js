@@ -1,3 +1,5 @@
+// "use client";
+
 import dbConnect from "@/config/db";
 import { SessionProvider } from "next-auth/react";
 import { Geist, Geist_Mono } from "next/font/google";
