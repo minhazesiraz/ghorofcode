@@ -1,6 +1,12 @@
 import dbConnect from "@/config/db";
 import User from "@/models/User";
 // import { generateAccessToken, generateRefreshToken } from "@/utils/jwt";
+import { sendVerificationEmail } from "@/utils/email-verified/send-verification-email";
+import {
+  generateVerificationCode,
+  generateVerificationToken,
+  generateVerificationTokenExpiry,
+} from "@/utils/email-verified/token-expiry";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 
@@ -18,12 +24,28 @@ export async function POST(req) {
   const salt = await bcrypt.genSalt(10);
   const pwHash = await bcrypt.hash(password, salt);
 
-  const userData = { firstName, lastName, email, password: pwHash };
+  const verificationToken = generateVerificationToken();
+  const verificationTokenExpiry = generateVerificationTokenExpiry();
+  const verificationCode = generateVerificationCode(); // Generate a random 6-digit code
+
+  const userData = {
+    firstName,
+    lastName,
+    email,
+    password: pwHash,
+    verificationToken,
+    verificationTokenExpiry,
+    verificationCode, // Store the verification code in the database
+  };
   console.log(userData);
 
   try {
     await User.create(userData);
-    return NextResponse.json({ message: "User created" }, { status: 201 });
+    await sendVerificationEmail(email, verificationToken, verificationCode); // Send verification email
+    return NextResponse.json(
+      { message: "User created. Verification email sent." },
+      { status: 201 }
+    );
   } catch (error) {
     console.log(error);
     return NextResponse.json({ error: error.message }, { status: 500 });

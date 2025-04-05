@@ -25,7 +25,7 @@ export default function Register() {
     //  console.log(userData);
 
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
@@ -37,7 +37,8 @@ export default function Register() {
       if (!res.ok) {
         throw new Error(data.message || "Signup failed");
       } else {
-        router.push("/auth/login"); // Redirect to login page
+        //   router.push("/login"); // Redirect to login page
+        router.push(`/verify-email?email=${userData.email}`);
       }
     } catch (error) {
       console.error(error);

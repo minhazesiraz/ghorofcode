@@ -33,6 +33,7 @@
 export const auth_config = {
   pages: { signIn: "/login" },
   providers: [],
+  trustHost: true, // ✅ This explicitly trusts localhost
   callbacks: {
     async jwt({ token, user, trigger, session, account, profile }) {
       // if (user) {
@@ -54,6 +55,7 @@ export const auth_config = {
         token.role = user.role;
         token.email = user.email;
         token.name = user.name;
+        token.emailVerified = user.emailVerified;
 
         //   console.log("Updated Token in auth.config.js:", token); not working
       }
@@ -70,6 +72,7 @@ export const auth_config = {
       session.user.role = token.role;
       session.user.email = token.email;
       session.user.name = token.name;
+      session.user.emailVerified = token.emailVerified;
 
       console.log(`Returning session: ${JSON.stringify(session)}`);
 

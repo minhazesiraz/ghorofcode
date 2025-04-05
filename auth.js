@@ -72,7 +72,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           console.log("Checking user in the database...");
           const user = await User.findOne({ email: credentials.email })
-            .select("+password role email firstName lastName")
+            .select("+password role email firstName lastName emailVerified")
             .lean();
 
           if (!user) {
@@ -117,6 +117,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             email: user.email,
             image: user.avatar,
             role: user.role,
+            emailVerified: user.emailVerified,
           };
         } catch (error) {
           throw new Error(
@@ -163,6 +164,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             email: profile.email,
             avatar: profile.picture,
             role: "client", // Default role for new users
+            emailVerified: profile.email_verified || true,
           });
         }
 
@@ -170,6 +172,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: profile.id,
           name: `${profile.given_name} ${profile.family_name}`,
           email: profile.email,
+          emailVerified: profile.email_verified || true,
           image: profile.picture,
           role: user?.role || "client",
         };
@@ -189,6 +192,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     //    clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
     //  }),
   ],
+  //   trustHost: true, // ✅ This explicitly trusts localhost
   callbacks: {
     //  async signIn({ user, account, profile }) {
     //    try {
@@ -279,6 +283,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = user.role;
         token.email = user.email;
         token.name = user.name;
+        token.emailVerified = user.emailVerified;
 
         console.log("Updated Token in auth.js:", token);
       }
@@ -307,6 +312,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.role = token.role;
       session.user.email = token.email;
       session.user.name = token.name;
+      session.user.emailVerified = token.emailVerified;
 
       console.log(`returning session: ${JSON.stringify(session)}`);
       return session;

@@ -16,6 +16,7 @@ export default auth((req) => {
 
   const user = auth?.user;
   const role = user?.role || "";
+  const emailVerified = user?.emailVerified;
   console.log("\n user in middleware:", user);
 
   //   const isPublicPage = PUBLIC_ROUTES.includes(pathname);
@@ -34,6 +35,10 @@ export default auth((req) => {
 
   if (isPublicPage) {
     return null;
+  }
+
+  if (user && emailVerified !== true) {
+    return NextResponse.redirect(new URL("/verify-email", nextUrl));
   }
 
   if (!user && (isChiefPage || isModeratorPage || isClientPage)) {
