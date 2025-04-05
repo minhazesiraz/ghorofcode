@@ -33,12 +33,34 @@ export default auth((req) => {
     pathname.startsWith(street)
   );
 
-  if (isPublicPage) {
-    return null;
+  //   if (user && emailVerified !== true) {
+  //     return NextResponse.redirect(
+  //       new URL(`/verify-email?email=${user.email}`, nextUrl)
+  //     );
+  //   }
+
+  const isOnVerificationRoute = [
+    "/verify-email",
+    "/api/verify-email",
+    "/api/verify-code",
+    "/api/verify-token",
+    "/api/resend-verification-email",
+    "/api/auth/signout",
+    "/api/auth/csrf",
+    "/api/auth/session",
+    //  "/api/auth/signin",
+    //  "/login",
+  ].some((route) => pathname.startsWith(route));
+
+  // ✅ Prevent loop: only redirect if not already on verification-related route
+  if (user && emailVerified !== true && !isOnVerificationRoute) {
+    return NextResponse.redirect(
+      new URL(`/verify-email?email=${user.email}`, nextUrl)
+    );
   }
 
-  if (user && emailVerified !== true) {
-    return NextResponse.redirect(new URL("/verify-email", nextUrl));
+  if (isPublicPage) {
+    return null;
   }
 
   if (!user && (isChiefPage || isModeratorPage || isClientPage)) {

@@ -1,8 +1,9 @@
 "use client";
 
-import { signIn } from "next-auth/react"; // Import signIn from next-auth/client
+import { getSession, signIn, signOut } from "next-auth/react"; // Import signIn from next-auth/client
 import { useRouter } from "next/navigation"; // Import Next.js router
 import { useState } from "react";
+
 // import { handleSignIn } from "./actions"; // Ensure the correct path
 
 export default function SignInPage() {
@@ -35,13 +36,31 @@ export default function SignInPage() {
         console.error("Login page", result.error);
         setError(result.error);
         return;
+      }
+      //       const { data: session } = useSession();
+      //   const emailFromSession = session?.user?.email;
+      //   const emailVerified = session?.user?.emailVerified;
+
+      // Wait a short moment then get the latest session
+      const session = await getSession();
+
+      const userEmail = session?.user?.email;
+      const emailVerified = session?.user?.emailVerified;
+
+      if (userEmail && emailVerified !== true) {
+        //   router.push(`/verify-email?email=${userEmail}`);
+        // Optionally log them out first
+        await signOut({ callbackUrl: `/verify-email?email=${userEmail}` });
       } else {
-        router.push("/blogs");
+        //   await getSession(); // Refresh session
+        router.push("/");
       }
     } catch (error) {
       // console.error(error);
       console.error("Sign-in error:", error);
       setError(error.message || "An unexpected error occurred.");
+      setLoading(false);
+    } finally {
       setLoading(false);
     }
 
@@ -101,7 +120,7 @@ export default function SignInPage() {
         </form>
         <button
           className="cursor-pointer"
-          onClick={() => signIn("google", { callbackUrl: "/blogs" })}
+          onClick={() => signIn("google", { callbackUrl: "/" })}
         >
           Login with Google
         </button>

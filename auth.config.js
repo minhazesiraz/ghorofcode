@@ -30,6 +30,8 @@
 
 // import { NextAuthConfig } from "next-auth"
 
+// import User from "@/models/User";
+
 export const auth_config = {
   pages: { signIn: "/login" },
   providers: [],
@@ -59,6 +61,19 @@ export const auth_config = {
 
         //   console.log("Updated Token in auth.config.js:", token); not working
       }
+
+      // Refresh emailVerified if token exists but outdated
+      // const dbUser = await User.findUnique({ where: { email: token.email } });
+      // if (dbUser && dbUser.emailVerified !== token.emailVerified) {
+      //   token.emailVerified = dbUser.emailVerified;
+      // }
+      // console.log("Updated Token in auth.config.js:", token); not working
+
+      //  const dbUser = await db.user.findUnique({ where: { email: token.email } });
+      //  if (dbUser && dbUser.emailVerified !== token.emailVerified) {
+      //    token.emailVerified = dbUser.emailVerified;
+      //  }
+
       return token;
     },
 
