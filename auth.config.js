@@ -35,6 +35,9 @@
 export const auth_config = {
   pages: { signIn: "/login" },
   providers: [],
+  session: {
+    strategy: "jwt",
+  }, // production build
   trustHost: true, // ✅ This explicitly trusts localhost
   callbacks: {
     async jwt({ token, user, trigger, session, account, profile }) {

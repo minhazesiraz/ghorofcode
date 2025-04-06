@@ -2,9 +2,9 @@
 
 import { resetPassword } from "@/app/actions/accounts";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 
-export default function ResetPassword() {
+function ResetPasswordForm() {
   const params = useSearchParams();
   const router = useRouter();
   const email = params.get("email");
@@ -52,5 +52,13 @@ export default function ResetPassword() {
       </form>
       {message && <p>{message}</p>}
     </div>
+  );
+}
+
+export default function ResetPassword() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

@@ -42,7 +42,7 @@ export async function requestPasswordReset(email) {
 }
 
 export async function resetPassword(email, token, newPassword) {
-  "use server";
+  //   "use server";
 
   const user = await User.findOne({ email });
   if (!user) return { error: "User not found" };

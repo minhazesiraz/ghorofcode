@@ -193,6 +193,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     //  }),
   ],
   //   trustHost: true, // ✅ This explicitly trusts localhost
+  session: {
+    strategy: "jwt", // Ensure session strategy is JWT for better reliability
+  }, // production build
   callbacks: {
     //  async signIn({ user, account, profile }) {
     //    try {

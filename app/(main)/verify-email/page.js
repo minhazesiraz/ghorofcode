@@ -1,4 +1,4 @@
-// "use client";
+"use client";
 
 // import { signOut } from "next-auth/react"; // Import signOut from next-auth/react
 // import { useRouter, useSearchParams } from "next/navigation";
@@ -171,14 +171,14 @@
 // }
 
 //////////////////////////
-"use client";
+// "use client";
 
 import { signOut } from "next-auth/react"; // Import signOut
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import ResendVerificationButton from "./_components/resend-verification-email";
 
-export default function VerifyPage() {
+function VerifyPageContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const emailFromQuery = searchParams.get("email");
@@ -280,5 +280,13 @@ export default function VerifyPage() {
         {message && !verifying && <p className="mt-4 text-sm">{message}</p>}
       </div>
     </div>
+  );
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <VerifyPageContent />
+    </Suspense>
   );
 }

@@ -25,6 +25,10 @@ const dbConnect = async () => {
       // useCreateIndex: true,
       // useFindAndModify: false,
       dbName: "ghorofcode",
+      connectTimeoutMS: 30000, // Adjust the timeout duration as needed // production build
+      // socketTimeoutMS: 30000, // Adjust the timeout duration as needed // production build
+      // connectTimeoutMS: 20000,
+      socketTimeoutMS: 45000,
     });
     //  const connection = await mongoose.connect(String(MONGODB_URI));
     isConnected = true;
