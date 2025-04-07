@@ -172,7 +172,7 @@ export default async function Blog({ params }) {
       </div>
       <div className="mt-4">
         <a
-          href={`https://www.facebook.com/sharer/sharer.php?u=https://ghor-of-code-d355omu0f-minhaz-e-sirazs-projects-724eda80.vercel.app/blogs/${blog.slug}`}
+          href={`https://www.facebook.com/sharer/sharer.php?u=https://ghor-of-code.vercel.app/blogs/${blog.slug}`}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700"
