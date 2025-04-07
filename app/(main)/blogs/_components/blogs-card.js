@@ -1,14 +1,19 @@
 // "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 
 export default function BlogsCard({ blog }) {
+  // console.log(blog, "blog");
+  console.log(blog, "blog from blogs-card");
   return (
     <div className="overflow-hidden rounded bg-white text-slate-500 shadow-md shadow-slate-200">
       {/* Image */}
       <figure>
-        <img
-          src={blog?.image || "https://picsum.photos/id/1081/800/600"}
+        <Image
+          width={800}
+          height={600}
+          src={blog?.thumbnail || "https://picsum.photos/id/1081/800/600"}
           alt={blog?.title}
           className="aspect-video w-full object-cover"
         />
@@ -18,7 +23,9 @@ export default function BlogsCard({ blog }) {
       <div className="p-6">
         <header className="mb-4 flex gap-4 items-center">
           <div className="relative inline-flex h-12 w-12 items-center justify-center rounded-full overflow-hidden bg-slate-100">
-            <img
+            <Image
+              width={48}
+              height={48}
               src={blog.author?.avatar || "https://i.pravatar.cc/48?img=25"}
               alt={blog.author?.firstName || "Author"}
               title={blog.author?.firstName || "Author"}
@@ -29,9 +36,17 @@ export default function BlogsCard({ blog }) {
           </div>
           <div>
             <h3 className="text-xl font-medium text-slate-700">{blog.title}</h3>
-            <p className="text-sm text-slate-400">
+            {/* <p className="text-sm text-slate-400">
               By {blog.author?.firstName || "Unknown"},{" "}
               {new Date(blog.createdAt).toLocaleDateString() || ""}
+            </p> */}
+            <p className="text-sm text-slate-400">
+              By {blog.author?.firstName || "Unknown"},{" "}
+              {new Date(blog?.createdAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long", // "short" দিলে Apr হবে
+                day: "numeric",
+              })}
             </p>
           </div>
         </header>

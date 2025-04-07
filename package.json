@@ -18,7 +18,8 @@
     "nodemailer": "^6.10.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "slugify": "^1.6.6"
+    "slugify": "^1.6.6",
+    "uploadthing": "^7.6.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
