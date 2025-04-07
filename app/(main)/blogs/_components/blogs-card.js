@@ -29,8 +29,6 @@ export default function BlogsCard({ blog }) {
               src={blog.author?.avatar || "https://i.pravatar.cc/48?img=25"}
               alt={blog.author?.firstName || "Author"}
               title={blog.author?.firstName || "Author"}
-              width="48"
-              height="48"
               className="max-w-full rounded-full"
             />
           </div>
